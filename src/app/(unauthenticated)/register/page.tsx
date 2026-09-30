@@ -17,10 +17,10 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated with valid token, redirect to dashboard
+  // If already authenticated with valid token, redirect to appropriate portal
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace("/dashboard");
+      router.replace(user.role === "ADMIN" ? "/admin" : "/dashboard");
     }
   }, [user, isLoading, router]);
 

@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useId } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/utils/api";
 import QRCode from "qrcode";
 import {
   Plus,
+  Pencil,
   Search,
   Star,
   Copy,
@@ -23,7 +26,19 @@ import {
   Loader2,
   Calendar,
   Layers,
+  BarChart3,
+  Folder,
+  FolderPlus,
+  Tag,
+  Palette,
 } from "lucide-react";
+
+interface GroupItem {
+  id: string;
+  name: string;
+  color: string;
+  urlCount: number;
+}
 
 interface UrlItem {
   id: string;
@@ -45,7 +60,14 @@ interface UrlItem {
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const searchInputId = useId();
+
+  useEffect(() => {
+    if (user && user.role === "ADMIN") {
+      router.replace("/admin");
+    }
+  }, [user, router]);
 
   const [urls, setUrls] = useState<UrlItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,20 +77,138 @@ export default function DashboardPage() {
 
   // Copied feedback state
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [domainHost, setDomainHost] = useState("localhost:3000");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDomainHost(window.location.host);
+    }
+  }, []);
 
   // Modals state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedQrUrl, setSelectedQrUrl] = useState<UrlItem | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
+  // Groups state
+  const [groups, setGroups] = useState<GroupItem[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupColor, setNewGroupColor] = useState("#3B82F6");
+  const [groupError, setGroupError] = useState<string | null>(null);
+
   // Create form state
   const [newOriginalUrl, setNewOriginalUrl] = useState("");
   const [newTitle, setNewTitle] = useState("");
   const [newCustomAlias, setNewCustomAlias] = useState("");
   const [newExpiresAt, setNewExpiresAt] = useState("");
+  const [newGroupId, setNewGroupId] = useState("");
   const [newQrColorDark, setNewQrColorDark] = useState("#000000");
+  const [newQrColorLight, setNewQrColorLight] = useState("#ffffff");
   const [createError, setCreateError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit form state
+  const [editingUrl, setEditingUrl] = useState<UrlItem | null>(null);
+  const [editOriginalUrl, setEditOriginalUrl] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editExpiresAt, setEditExpiresAt] = useState("");
+  const [editIsActive, setEditIsActive] = useState(true);
+  const [editGroupId, setEditGroupId] = useState("");
+  const [editQrColorDark, setEditQrColorDark] = useState("#000000");
+  const [editQrColorLight, setEditQrColorLight] = useState("#ffffff");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
+  // Fetch groups
+  const fetchGroups = useCallback(async () => {
+    try {
+      const res = await api.get<{ success: boolean; data: { groups: GroupItem[] } }>("/api/v1/user/groups");
+      if (res.success && res.data) {
+        setGroups(res.data.groups);
+      }
+    } catch (e) {
+      console.error("Failed to load groups", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGroupName.trim()) return;
+    setGroupError(null);
+    try {
+      const res = await api.post<{ success: boolean; data: { group: GroupItem } }>("/api/v1/user/groups", {
+        name: newGroupName.trim(),
+        color: newGroupColor,
+      });
+      if (res.success && res.data) {
+        setGroups((prev) => [...prev, res.data.group]);
+        setNewGroupName("");
+      }
+    } catch (err: any) {
+      setGroupError(err.message || "Failed to create group");
+    }
+  };
+
+  const handleDeleteGroup = async (id: string) => {
+    if (!window.confirm("Delete this group? Links inside it will become unassigned.")) return;
+    try {
+      await api.delete(`/api/v1/user/groups/${id}`);
+      setGroups((prev) => prev.filter((g) => g.id !== id));
+      if (selectedGroupId === id) setSelectedGroupId(null);
+      fetchUrls();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleOpenEdit = (item: UrlItem) => {
+    setEditingUrl(item);
+    setEditOriginalUrl(item.originalUrl);
+    setEditTitle(item.title || "");
+    setEditExpiresAt(item.expiresAt ? new Date(item.expiresAt).toISOString().substring(0, 16) : "");
+    setEditIsActive(item.isActive);
+    setEditGroupId(item.group?.id || "");
+    setEditQrColorDark(item.qrColorDark || "#000000");
+    setEditQrColorLight(item.qrColorLight || "#ffffff");
+    setEditError(null);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUrl) return;
+    setEditError(null);
+    setIsEditSubmitting(true);
+    try {
+      const res = await api.patch<{ success: boolean; data: { url: UrlItem } }>(
+        `/api/v1/user/urls/${editingUrl.id}`,
+        {
+          title: editTitle.trim() || null,
+          expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
+          isActive: editIsActive,
+          groupId: editGroupId || null,
+          qrColorDark: editQrColorDark,
+          qrColorLight: editQrColorLight,
+        }
+      );
+      if (res.success && res.data) {
+        setUrls((prev) =>
+          prev.map((item) => (item.id === editingUrl.id ? { ...item, ...res.data.url } : item))
+        );
+        setEditingUrl(null);
+        await Promise.all([fetchUrls(), fetchGroups()]);
+      }
+    } catch (err: any) {
+      setEditError(err.message || "Failed to update link");
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  };
 
   // Fetch URLs
   const fetchUrls = useCallback(async () => {
@@ -79,6 +219,7 @@ export default function DashboardPage() {
       if (statusFilter === "ACTIVE") params.append("isActive", "true");
       if (statusFilter === "INACTIVE") params.append("isActive", "false");
       if (favoriteOnly) params.append("isFavorite", "true");
+      if (selectedGroupId) params.append("groupId", selectedGroupId);
 
       const res = await api.get<{
         success: boolean;
@@ -93,10 +234,45 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [search, statusFilter, favoriteOnly]);
+  }, [search, statusFilter, favoriteOnly, selectedGroupId]);
 
   useEffect(() => {
     fetchUrls();
+  }, [fetchUrls]);
+
+  // Auto-sync guest URLs created in localStorage into this user account
+  useEffect(() => {
+    const syncGuestLinks = async () => {
+      try {
+        const stored = localStorage.getItem("synerry_guest_urls");
+        if (!stored) return;
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed) || parsed.length === 0) return;
+
+        const claims = parsed
+          .filter((item: any) => item.shortCode)
+          .map((item: any) => ({
+            shortCode: item.shortCode,
+            claimToken: item.claimToken,
+          }));
+
+        if (claims.length === 0) return;
+
+        const res = await api.post<{ success: boolean; data: { syncedCount: number } }>(
+          "/api/v1/user/urls/sync-guest",
+          { claims }
+        );
+
+        if (res.success && res.data && res.data.syncedCount > 0) {
+          localStorage.removeItem("synerry_guest_urls");
+          fetchUrls();
+        }
+      } catch (err) {
+        console.error("Failed to auto-sync guest URLs", err);
+      }
+    };
+
+    syncGuestLinks();
   }, [fetchUrls]);
 
   // Copy to clipboard
@@ -219,7 +395,9 @@ export default function DashboardPage() {
         title: newTitle.trim() || undefined,
         customAlias: newCustomAlias.trim() || undefined,
         expiresAt: newExpiresAt ? new Date(newExpiresAt).toISOString() : undefined,
+        groupId: newGroupId || undefined,
         qrColorDark: newQrColorDark,
+        qrColorLight: newQrColorLight,
       };
 
       const res = await api.post<{
@@ -234,8 +412,11 @@ export default function DashboardPage() {
         setNewTitle("");
         setNewCustomAlias("");
         setNewExpiresAt("");
+        setNewGroupId("");
         setNewQrColorDark("#000000");
+        setNewQrColorLight("#ffffff");
         fetchUrls();
+        fetchGroups();
       }
     } catch (err: any) {
       setCreateError(err.message || "Failed to create short link");
@@ -279,6 +460,24 @@ export default function DashboardPage() {
                 {user.role}
               </span>
             </div>
+          )}
+
+          <Link
+            href="/analytics"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-700 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-neutral-500" />
+            <span>Analytics</span>
+          </Link>
+
+          {user && user.role === "ADMIN" && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:text-red-800 border border-red-200 hover:border-red-300 rounded bg-red-50/60 transition-colors"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin Moderation</span>
+            </Link>
           )}
 
           <button
@@ -342,8 +541,75 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {/* Group / Folder Tab Bar (Dedicated Horizontal Bar) */}
+          <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between gap-2 overflow-x-auto pb-1">
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setSelectedGroupId(null)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                  selectedGroupId === null
+                    ? "bg-neutral-900 text-white shadow-2xs"
+                    : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900"
+                }`}
+              >
+                <span>All Links</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    selectedGroupId === null
+                      ? "bg-neutral-700 text-white"
+                      : "bg-neutral-200 text-neutral-600"
+                  }`}
+                >
+                  {urls.length}
+                </span>
+              </button>
+
+              {groups.map((g) => {
+                const isSelected = selectedGroupId === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setSelectedGroupId(isSelected ? null : g.id)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
+                      isSelected
+                        ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
+                        : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300"
+                    }`}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: g.color }}
+                    />
+                    <span>{g.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        isSelected
+                          ? "bg-neutral-700 text-white"
+                          : "bg-neutral-100 text-neutral-500"
+                      }`}
+                    >
+                      {g.urlCount}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsGroupModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs border border-dashed border-neutral-300 hover:border-neutral-400 text-neutral-600 hover:text-neutral-900 bg-white transition-colors cursor-pointer shrink-0"
+              title="Manage Groups and Folders"
+            >
+              <FolderPlus className="w-3.5 h-3.5 text-neutral-500" />
+              <span>New Group</span>
+            </button>
+          </div>
+
           {/* Filter Bar */}
-          <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="mt-3 pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Search */}
             <div className="relative flex-1 max-w-sm">
               <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -358,7 +624,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Filter Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
@@ -397,9 +663,12 @@ export default function DashboardPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-50/60 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
-                  <th className="py-2.5 px-3 w-10 text-center">⭐</th>
+                  <th className="py-2.5 px-3 w-10 text-center">
+                    <Star className="w-3.5 h-3.5 text-neutral-400 mx-auto" />
+                  </th>
                   <th className="py-2.5 px-4">Original URL & Title</th>
                   <th className="py-2.5 px-4">Short URL</th>
+                  <th className="py-2.5 px-4">Group</th>
                   <th className="py-2.5 px-4 text-center">Clicks</th>
                   <th className="py-2.5 px-4 text-center">Status</th>
                   <th className="py-2.5 px-4 text-right">Actions</th>
@@ -408,14 +677,14 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-neutral-100 text-xs">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
                       <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-neutral-400" />
                       <span>Loading links...</span>
                     </td>
                   </tr>
                 ) : urls.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-neutral-400">
+                    <td colSpan={7} className="py-12 text-center text-neutral-400">
                       <Layers className="w-8 h-8 mx-auto text-neutral-300 mb-2" />
                       <p className="text-xs font-medium text-neutral-600">No links found</p>
                       <p className="text-[11px] text-neutral-400 mt-0.5">
@@ -453,8 +722,8 @@ export default function DashboardPage() {
 
                         {/* Title & Original URL */}
                         <td className="py-3 px-4 max-w-xs sm:max-w-sm">
-                          <div className="font-medium text-neutral-900 truncate">
-                            {item.title || item.originalUrl}
+                          <div className="flex items-center gap-1.5 font-medium text-neutral-900 truncate">
+                            <span className="truncate">{item.title || item.originalUrl}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-neutral-400 text-[11px] truncate mt-0.5">
                             <span className="truncate max-w-[280px]">
@@ -478,9 +747,10 @@ export default function DashboardPage() {
                               href={shortUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="font-mono text-xs text-neutral-800 hover:text-[#E30A27] hover:underline"
+                              className="font-mono text-xs text-neutral-800 hover:text-[#E30A27] hover:underline inline-flex items-center"
                             >
-                              /s/{item.shortCode}
+                              <span className="text-neutral-400">{domainHost}/s/</span>
+                              <span className="font-semibold text-neutral-900">{item.shortCode}</span>
                             </a>
                             <button
                               onClick={() => handleCopy(item.shortCode, item.id)}
@@ -498,6 +768,28 @@ export default function DashboardPage() {
                             <span className="text-[10px] text-neutral-400 font-mono">
                               alias: {item.customAlias}
                             </span>
+                          )}
+                        </td>
+
+                        {/* Group / Folder */}
+                        <td className="py-3 px-4">
+                          {item.group ? (
+                            <span
+                              style={{
+                                backgroundColor: item.group.color + "18",
+                                borderColor: item.group.color + "40",
+                                color: item.group.color,
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border"
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ backgroundColor: item.group.color }}
+                              />
+                              <span className="truncate max-w-[120px]">{item.group.name}</span>
+                            </span>
+                          ) : (
+                            <span className="text-neutral-300 text-xs">-</span>
                           )}
                         </td>
 
@@ -534,6 +826,33 @@ export default function DashboardPage() {
                         {/* Actions */}
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Analytics Link */}
+                            <Link
+                              href={`/analytics?id=${item.id}&code=${item.shortCode}`}
+                              className="p-1.5 text-neutral-500 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+                              title="View Analytics"
+                            >
+                              <BarChart3 className="w-3.5 h-3.5" />
+                            </Link>
+
+                            {/* Edit Button */}
+                            {item.isBanned ? (
+                              <span
+                                className="p-1.5 text-neutral-300 border border-neutral-100 rounded bg-neutral-50 cursor-not-allowed"
+                                title="Locked: Suspended by Administrator"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleOpenEdit(item)}
+                                className="p-1.5 text-neutral-500 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+                                title="Edit link"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
                             {/* QR Code Modal Button */}
                             <button
                               onClick={() => handleOpenQr(item)}
@@ -544,26 +863,44 @@ export default function DashboardPage() {
                             </button>
 
                             {/* Toggle Active Button */}
-                            <button
-                              onClick={() => handleToggleActive(item.id)}
-                              className={`p-1.5 rounded border transition-colors cursor-pointer ${
-                                item.isActive
-                                  ? "text-neutral-500 hover:text-neutral-800 border-neutral-200 hover:border-neutral-300 bg-white"
-                                  : "text-amber-700 border-amber-200 bg-amber-50"
-                              }`}
-                              title={item.isActive ? "Pause link" : "Activate link"}
-                            >
-                              <Power className="w-3.5 h-3.5" />
-                            </button>
+                            {item.isBanned ? (
+                              <span
+                                className="p-1.5 text-neutral-300 border border-neutral-100 rounded bg-neutral-50 cursor-not-allowed"
+                                title="Locked: Suspended by Administrator"
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleToggleActive(item.id)}
+                                className={`p-1.5 rounded border transition-colors cursor-pointer ${
+                                  item.isActive
+                                    ? "text-neutral-500 hover:text-neutral-800 border-neutral-200 hover:border-neutral-300 bg-white"
+                                    : "text-amber-700 border-amber-200 bg-amber-50"
+                                }`}
+                                title={item.isActive ? "Pause link" : "Activate link"}
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                              </button>
+                            )}
 
                             {/* Delete Button */}
-                            <button
-                              onClick={() => handleDelete(item.id)}
-                              className="p-1.5 text-neutral-400 hover:text-red-600 border border-neutral-200 hover:border-red-200 rounded bg-white hover:bg-red-50 transition-colors cursor-pointer"
-                              title="Delete link"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {item.isBanned ? (
+                              <span
+                                className="p-1.5 text-neutral-300 border border-neutral-100 rounded bg-neutral-50 cursor-not-allowed"
+                                title="Locked: Suspended by Administrator"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleDelete(item.id)}
+                                className="p-1.5 text-neutral-400 hover:text-red-600 border border-neutral-200 hover:border-red-200 rounded bg-white hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Delete link"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -644,8 +981,8 @@ export default function DashboardPage() {
                     Custom Slug (Optional)
                   </label>
                   <div className="flex items-center">
-                    <span className="px-2 py-2 border border-r-0 border-neutral-200 bg-neutral-50 text-neutral-400 text-xs rounded-l-md">
-                      /s/
+                    <span className="px-2 py-2 border border-r-0 border-neutral-200 bg-neutral-50 text-neutral-400 text-xs rounded-l-md font-mono">
+                      {domainHost}/s/
                     </span>
                     <input
                       type="text"
@@ -668,6 +1005,68 @@ export default function DashboardPage() {
                     onChange={(e) => setNewExpiresAt(e.target.value)}
                     className="w-full px-2 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
                   />
+                </div>
+              </div>
+
+              {/* Group / Folder Assignment */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-700 mb-1">
+                  Group / Category (Optional)
+                </label>
+                <select
+                  value={newGroupId}
+                  onChange={(e) => setNewGroupId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white text-neutral-800"
+                >
+                  <option value="">No Group</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* QR Code Colors Customization */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                    QR Foreground Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={newQrColorDark}
+                      onChange={(e) => setNewQrColorDark(e.target.value)}
+                      className="w-7 h-7 rounded border border-neutral-200 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={newQrColorDark}
+                      onChange={(e) => setNewQrColorDark(e.target.value)}
+                      className="flex-1 px-2 py-1 text-xs font-mono border border-neutral-200 rounded"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                    QR Background Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={newQrColorLight}
+                      onChange={(e) => setNewQrColorLight(e.target.value)}
+                      className="w-7 h-7 rounded border border-neutral-200 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={newQrColorLight}
+                      onChange={(e) => setNewQrColorLight(e.target.value)}
+                      className="flex-1 px-2 py-1 text-xs font-mono border border-neutral-200 rounded"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -708,7 +1107,7 @@ export default function DashboardPage() {
                   QR Code
                 </h3>
                 <p className="text-xs text-neutral-500 font-mono">
-                  /s/{selectedQrUrl.shortCode}
+                  {domainHost}/s/{selectedQrUrl.shortCode}
                 </p>
               </div>
               <button
@@ -757,6 +1156,294 @@ export default function DashboardPage() {
                   <span>Download SVG</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* Edit Short URL Modal (Minimalist Cloudflare Style)        */}
+      {/* ======================================================== */}
+      {editingUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-neutral-900">
+                  Edit short link
+                </h3>
+                <p className="text-xs text-neutral-500 font-mono">
+                  {domainHost}/s/{editingUrl.shortCode}
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingUrl(null)}
+                className="text-neutral-400 hover:text-neutral-600 p-1 rounded-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+              {editError && (
+                <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              {/* Destination URL (Immutable) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium text-neutral-700">
+                    Destination URL
+                  </label>
+                  <span className="text-[10px] text-neutral-400">
+                    Target URL is permanent to preserve link integrity
+                  </span>
+                </div>
+                <input
+                  type="url"
+                  disabled
+                  value={editOriginalUrl}
+                  className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md bg-neutral-50 text-neutral-500 font-mono cursor-not-allowed select-all"
+                />
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-700 mb-1">
+                  Title (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="e.g. Marketing Campaign 2026"
+                  className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                />
+              </div>
+
+              {/* Expiration Date & Active Toggle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 mb-1">
+                    Expiration Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={editExpiresAt}
+                    onChange={(e) => setEditExpiresAt(e.target.value)}
+                    className="w-full px-2 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 h-9 px-3 border border-neutral-200 rounded-md bg-neutral-50/50">
+                  <input
+                    type="checkbox"
+                    id="edit-is-active"
+                    checked={editIsActive}
+                    onChange={(e) => setEditIsActive(e.target.checked)}
+                    className="rounded border-neutral-300 text-[#E30A27] focus:ring-[#E30A27]"
+                  />
+                  <label htmlFor="edit-is-active" className="text-xs text-neutral-700 font-medium cursor-pointer select-none">
+                    Link Active (Enabled)
+                  </label>
+                </div>
+              </div>
+
+              {/* Group / Folder Assignment */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-700 mb-1">
+                  Group / Category
+                </label>
+                <select
+                  value={editGroupId}
+                  onChange={(e) => setEditGroupId(e.target.value)}
+                  className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white text-neutral-800"
+                >
+                  <option value="">No Group (Unassigned)</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* QR Code Colors Customization */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                    QR Foreground Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editQrColorDark}
+                      onChange={(e) => setEditQrColorDark(e.target.value)}
+                      className="w-7 h-7 rounded border border-neutral-200 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={editQrColorDark}
+                      onChange={(e) => setEditQrColorDark(e.target.value)}
+                      className="flex-1 px-2 py-1 text-xs font-mono border border-neutral-200 rounded"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-neutral-600 mb-1">
+                    QR Background Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editQrColorLight}
+                      onChange={(e) => setEditQrColorLight(e.target.value)}
+                      className="w-7 h-7 rounded border border-neutral-200 cursor-pointer p-0.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={editQrColorLight}
+                      onChange={(e) => setEditQrColorLight(e.target.value)}
+                      className="flex-1 px-2 py-1 text-xs font-mono border border-neutral-200 rounded"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-neutral-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingUrl(null)}
+                  className="px-3 py-2 text-xs font-medium text-neutral-600 hover:text-neutral-800 border border-neutral-200 hover:border-neutral-300 rounded-md transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditSubmitting}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#E30A27] hover:bg-[#C80820] rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  {isEditSubmitting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <span>Save changes</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* Group / Folder Management Modal                          */}
+      {/* ======================================================== */}
+      {isGroupModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <Folder className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-neutral-900">
+                    Manage Groups & Categories
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Organize your short links into folders
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsGroupModalOpen(false)}
+                className="text-neutral-400 hover:text-neutral-600 p-1 rounded-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Existing Groups List */}
+              <div>
+                <h4 className="text-xs font-semibold text-neutral-700 mb-2">
+                  Existing Groups ({groups.length})
+                </h4>
+                {groups.length === 0 ? (
+                  <p className="text-xs text-neutral-400 py-3 text-center border border-dashed border-neutral-200 rounded-md">
+                    No groups created yet. Create one below!
+                  </p>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {groups.map((g) => (
+                      <div
+                        key={g.id}
+                        className="flex items-center justify-between p-2 rounded-md border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-50 text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: g.color }}
+                          ></span>
+                          <span className="font-medium text-neutral-800">{g.name}</span>
+                          <span className="text-[10px] text-neutral-400">
+                            ({g.urlCount} links)
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteGroup(g.id)}
+                          className="p-1 text-neutral-400 hover:text-red-600 transition-colors"
+                          title="Delete group"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Create Group Form */}
+              <form onSubmit={handleCreateGroup} className="pt-3 border-t border-neutral-100 space-y-3">
+                <h4 className="text-xs font-semibold text-neutral-700">
+                  Create New Group
+                </h4>
+
+                {groupError && (
+                  <div className="p-2 rounded bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
+                    <span>{groupError}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={newGroupColor}
+                    onChange={(e) => setNewGroupColor(e.target.value)}
+                    className="w-8 h-8 rounded border border-neutral-200 cursor-pointer p-0.5 bg-white shrink-0"
+                    title="Choose group color"
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    placeholder="e.g. Marketing, Social, Personal..."
+                    className="flex-1 px-3 py-1.5 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-md transition-colors shrink-0"
+                  >
+                    Add
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

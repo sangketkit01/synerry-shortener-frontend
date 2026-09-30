@@ -16,10 +16,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated with valid token, redirect to dashboard
+  // If already authenticated with valid token, redirect to appropriate portal
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace("/dashboard");
+      router.replace(user.role === "ADMIN" ? "/admin" : "/dashboard");
     }
   }, [user, isLoading, router]);
 
@@ -45,7 +45,11 @@ export default function LoginPage() {
 
       if (res.success && res.data) {
         login(res.data.accessToken, res.data.user);
-        router.push("/dashboard");
+        if (res.data.user.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to sign in. Please verify your credentials.");
