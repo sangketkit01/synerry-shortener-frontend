@@ -433,28 +433,78 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-neutral-50/50 flex flex-col">
       {/* Cloudflare-style Clean Header */}
-      <header className="h-14 border-b border-neutral-200 bg-white px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center">
+      <header className="h-14 border-b border-neutral-200 bg-white px-3 sm:px-8 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <img
               src="/synerry-logo.png"
               alt="Synerry"
-              className="h-7 w-auto object-contain"
+              className="h-6 sm:h-7 w-auto object-contain"
             />
+            <span className="font-semibold text-sm text-neutral-900 hover:text-[#E30A27] transition-colors">
+              Shortener
+            </span>
           </Link>
-          <span className="text-neutral-300">/</span>
-          <span className="text-xs text-neutral-500 font-medium">Shortener</span>
+
+          <nav className="flex items-center gap-1 sm:gap-1.5 text-xs text-neutral-500 overflow-x-auto">
+            <span className="text-neutral-300">/</span>
+            <Link
+              href="/dashboard"
+              onClick={() => {
+                setSelectedGroupId(null);
+                setStatusFilter("ALL");
+                setFavoriteOnly(false);
+                setSearch("");
+              }}
+              className={`transition-colors font-medium ${
+                !selectedGroupId && statusFilter === "ALL" && !favoriteOnly && !search
+                  ? "text-neutral-900 font-semibold"
+                  : "text-neutral-500 hover:text-neutral-900"
+              }`}
+            >
+              Dashboard
+            </Link>
+            {selectedGroupId && (
+              <>
+                <span className="text-neutral-300">/</span>
+                <span className="text-neutral-900 font-medium flex items-center gap-1 truncate max-w-[100px] sm:max-w-[160px]">
+                  <Folder
+                    className="w-3.5 h-3.5 shrink-0"
+                    style={{ color: groups.find((g) => g.id === selectedGroupId)?.color || "#3B82F6" }}
+                  />
+                  <span className="truncate">{groups.find((g) => g.id === selectedGroupId)?.name}</span>
+                </span>
+              </>
+            )}
+            {favoriteOnly && (
+              <>
+                <span className="text-neutral-300">/</span>
+                <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[11px] font-medium flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                  <span className="hidden sm:inline">Favorites</span>
+                </span>
+              </>
+            )}
+            {statusFilter !== "ALL" && (
+              <>
+                <span className="text-neutral-300">/</span>
+                <span className="text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded text-[11px] font-medium">
+                  {statusFilter === "ACTIVE" ? "Active" : "Inactive"}
+                </span>
+              </>
+            )}
+          </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user && (
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded border border-neutral-200 bg-neutral-50 text-neutral-700 text-xs">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-neutral-200 bg-neutral-50 text-neutral-700 text-xs">
               {user.role === "ADMIN" ? (
                 <ShieldCheck className="w-3.5 h-3.5 text-[#E30A27]" />
               ) : (
                 <UserIcon className="w-3.5 h-3.5 text-neutral-500" />
               )}
-              <span className="font-medium text-neutral-800">{user.email}</span>
+              <span className="font-medium text-neutral-800 hidden md:inline">{user.email}</span>
               <span className="text-[10px] px-1 py-0.5 rounded bg-white text-neutral-600 border border-neutral-200 font-semibold">
                 {user.role}
               </span>
@@ -463,28 +513,31 @@ export default function DashboardPage() {
 
           <Link
             href="/analytics"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-700 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors"
+            className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs text-neutral-700 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            title="Analytics"
           >
             <BarChart3 className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Analytics</span>
+            <span className="hidden sm:inline">Analytics</span>
           </Link>
 
           {user && user.role === "ADMIN" && (
             <Link
               href="/admin"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:text-red-800 border border-red-200 hover:border-red-300 rounded bg-red-50/60 transition-colors"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-red-700 hover:text-red-800 border border-red-200 hover:border-red-300 rounded bg-red-50/60 transition-colors cursor-pointer"
+              title="Admin Moderation"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Admin Moderation</span>
+              <span className="hidden sm:inline">Admin Moderation</span>
             </Link>
           )}
 
           <button
             onClick={() => logout()}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            title="Sign out"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Sign out</span>
+            <span className="hidden sm:inline">Sign out</span>
           </button>
         </div>
       </header>
@@ -659,7 +712,7 @@ export default function DashboardPage() {
         {/* Links Data Table (Cloudflare Minimalist Style) */}
         <div className="bg-white border border-neutral-200 rounded-lg shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[720px]">
               <thead>
                 <tr className="border-b border-neutral-200 bg-neutral-50/60 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                   <th className="py-2.5 px-3 w-10 text-center">
@@ -916,9 +969,9 @@ export default function DashboardPage() {
       {/* Create Short URL Modal (Minimalist Cloudflare Style)      */}
       {/* ======================================================== */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 sm:px-6 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900">
                   Create new short link
@@ -935,7 +988,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleCreateSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               {createError && (
                 <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -1098,9 +1151,9 @@ export default function DashboardPage() {
       {/* QR Code Modal (Instant Preview + PNG & SVG Download)     */}
       {/* ======================================================== */}
       {selectedQrUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-sm overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-sm max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900">
                   QR Code
@@ -1117,7 +1170,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="p-6 flex flex-col items-center">
+            <div className="p-4 sm:p-6 flex flex-col items-center overflow-y-auto">
               {/* QR Image Display */}
               <div className="p-4 border border-neutral-200 rounded-lg bg-white shadow-2xs mb-4">
                 {qrDataUrl ? (
@@ -1164,9 +1217,9 @@ export default function DashboardPage() {
       {/* Edit Short URL Modal (Minimalist Cloudflare Style)        */}
       {/* ======================================================== */}
       {editingUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 sm:px-6 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900">
                   Edit short link
@@ -1183,7 +1236,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto">
               {editError && (
                 <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -1342,9 +1395,9 @@ export default function DashboardPage() {
       {/* Group / Folder Management Modal                          */}
       {/* ======================================================== */}
       {isGroupModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
                   <Folder className="w-4 h-4" />
@@ -1366,7 +1419,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
               {/* Existing Groups List */}
               <div>
                 <h4 className="text-xs font-semibold text-neutral-700 mb-2">

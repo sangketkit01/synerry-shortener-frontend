@@ -87,7 +87,7 @@ export default function RegisterPage() {
               alt="Synerry"
               className="h-8 w-auto object-contain"
             />
-            <span className="font-medium text-xs tracking-tight text-neutral-500 border-l border-neutral-300 pl-2">
+            <span className="font-semibold text-base text-neutral-900 hover:text-[#E30A27] transition-colors">
               Shortener
             </span>
           </Link>

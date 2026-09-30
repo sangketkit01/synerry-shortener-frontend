@@ -215,19 +215,19 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top Navbar (Cloudflare Minimalist Style) */}
-      <header className="h-14 border-b border-neutral-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 bg-white">
-        <Link href="/" className="flex items-center gap-2">
+      <header className="h-14 border-b border-neutral-200 px-3 sm:px-8 flex items-center justify-between sticky top-0 z-20 bg-white">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
           <img
             src="/synerry-logo.png"
             alt="Synerry"
-            className="h-7 w-auto object-contain"
+            className="h-6 sm:h-7 w-auto object-contain"
           />
-          <span className="font-medium text-xs tracking-tight text-neutral-500 border-l border-neutral-300 pl-2">
+          <span className="font-semibold text-sm sm:text-base text-neutral-900 hover:text-[#E30A27] transition-colors">
             Shortener
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {isLoading ? null : user ? (
             <Link
               href="/dashboard"
@@ -240,13 +240,13 @@ export default function HomePage() {
             <>
               <Link
                 href="/login"
-                className="px-3 py-1.5 text-xs font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+                className="px-2.5 sm:px-3 py-1.5 text-xs font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
               >
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#E30A27] hover:bg-[#C80820] rounded shadow-2xs transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-white bg-[#E30A27] hover:bg-[#C80820] rounded shadow-2xs transition-colors"
               >
                 <span>Get Started</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -544,9 +544,9 @@ export default function HomePage() {
 
       {/* QR Code Modal */}
       {selectedQrItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-sm overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-sm max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900">
                   QR Code
@@ -563,7 +563,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="p-6 flex flex-col items-center">
+            <div className="p-4 sm:p-6 flex flex-col items-center overflow-y-auto">
               <div className="p-4 border border-neutral-200 rounded-lg bg-white shadow-2xs mb-4">
                 {qrDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element

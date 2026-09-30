@@ -436,27 +436,49 @@ export default function AdminModerationPage() {
   return (
     <div className="min-h-screen bg-neutral-50/50 flex flex-col">
       {/* Top Navbar */}
-      <header className="h-14 border-b border-neutral-200 bg-white px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <Link href="/admin" className="flex items-center">
+      <header className="h-14 border-b border-neutral-200 bg-white px-3 sm:px-8 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link href="/admin" className="flex items-center gap-2 shrink-0">
             <img
               src="/synerry-logo.png"
               alt="Synerry"
-              className="h-7 w-auto object-contain"
+              className="h-6 sm:h-7 w-auto object-contain"
             />
+            <span className="font-semibold text-sm text-neutral-900 hover:text-[#E30A27] transition-colors">
+              Shortener
+            </span>
           </Link>
-          <span className="text-neutral-300">/</span>
-          <span className="text-xs text-[#E30A27] font-semibold flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Admin Portal</span>
-          </span>
+
+          <nav className="flex items-center gap-1 sm:gap-1.5 text-xs text-neutral-500 overflow-x-auto">
+            <span className="text-neutral-300">/</span>
+            <Link
+              href="/admin"
+              onClick={() => setActiveTab("urls")}
+              className={`transition-colors font-medium flex items-center gap-1 ${
+                activeTab === "urls"
+                  ? "text-[#E30A27] font-semibold"
+                  : "text-neutral-500 hover:text-neutral-900"
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#E30A27]" />
+              <span>Admin Portal</span>
+            </Link>
+            {activeTab !== "urls" && (
+              <>
+                <span className="text-neutral-300">/</span>
+                <span className="text-neutral-900 font-medium">
+                  {activeTab === "users" ? "User Accounts" : "ETL Pipeline"}
+                </span>
+              </>
+            )}
+          </nav>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {user && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-neutral-200 bg-neutral-50 text-neutral-700 text-xs">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded border border-neutral-200 bg-neutral-50 text-neutral-700 text-xs">
               <ShieldCheck className="w-3.5 h-3.5 text-[#E30A27]" />
-              <span className="font-medium text-neutral-800">{user.email}</span>
+              <span className="font-medium text-neutral-800 hidden md:inline">{user.email}</span>
               <span className="text-[10px] px-1 py-0.5 rounded bg-white text-neutral-600 border border-neutral-200 font-semibold">
                 ADMIN
               </span>
@@ -465,19 +487,20 @@ export default function AdminModerationPage() {
 
           <Link
             href="/analytics"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-700 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 text-xs text-neutral-700 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            title="Global Analytics"
           >
             <BarChart2 className="w-3.5 h-3.5 text-neutral-500" />
-            <span>Global Analytics</span>
+            <span className="hidden sm:inline">Global Analytics</span>
           </Link>
 
           <button
             onClick={() => logout()}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
             title="Sign out of Admin Portal"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Sign out</span>
+            <span className="hidden sm:inline">Sign out</span>
           </button>
         </div>
       </header>
@@ -519,10 +542,10 @@ export default function AdminModerationPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-neutral-200 mb-6 pb-px">
+        <div className="flex items-center gap-2 border-b border-neutral-200 mb-6 pb-px overflow-x-auto scrollbar-none flex-nowrap">
           <button
             onClick={() => setActiveTab("urls")}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer shrink-0 ${
               activeTab === "urls"
                 ? "border-[#E30A27] text-neutral-900 font-semibold"
                 : "border-transparent text-neutral-500 hover:text-neutral-800"
@@ -534,7 +557,7 @@ export default function AdminModerationPage() {
 
           <button
             onClick={() => setActiveTab("users")}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer shrink-0 ${
               activeTab === "users"
                 ? "border-[#E30A27] text-neutral-900 font-semibold"
                 : "border-transparent text-neutral-500 hover:text-neutral-800"
@@ -546,7 +569,7 @@ export default function AdminModerationPage() {
 
           <button
             onClick={() => setActiveTab("pipeline")}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer shrink-0 ${
               activeTab === "pipeline"
                 ? "border-[#E30A27] text-neutral-900 font-semibold"
                 : "border-transparent text-neutral-500 hover:text-neutral-800"
@@ -561,7 +584,7 @@ export default function AdminModerationPage() {
         {activeTab === "urls" && (
           <div>
             {/* Toolbar & Filter Bar */}
-            <div className="bg-white border border-neutral-200 rounded-t-lg p-3 sm:px-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-b-0">
+            <div className="bg-white border border-neutral-200 rounded-t-lg p-3 sm:px-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b-0">
               {/* Search Box */}
               <div className="relative w-full sm:w-80">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -575,10 +598,10 @@ export default function AdminModerationPage() {
               </div>
 
               {/* Status Filter Buttons */}
-              <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto">
+              <div className="flex items-center gap-1 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                 <button
                   onClick={() => setStatusFilter("ALL")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0 ${
                     statusFilter === "ALL"
                       ? "bg-neutral-900 text-white"
                       : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100 border border-neutral-200"
@@ -588,7 +611,7 @@ export default function AdminModerationPage() {
                 </button>
                 <button
                   onClick={() => setStatusFilter("BANNED")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0 ${
                     statusFilter === "BANNED"
                       ? "bg-red-600 text-white"
                       : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100 border border-neutral-200"
@@ -598,7 +621,7 @@ export default function AdminModerationPage() {
                 </button>
                 <button
                   onClick={() => setStatusFilter("ACTIVE")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0 ${
                     statusFilter === "ACTIVE"
                       ? "bg-emerald-600 text-white"
                       : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100 border border-neutral-200"
@@ -608,7 +631,7 @@ export default function AdminModerationPage() {
                 </button>
                 <button
                   onClick={() => setStatusFilter("DELETED")}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded transition-colors cursor-pointer shrink-0 ${
                     statusFilter === "DELETED"
                       ? "bg-neutral-800 text-white"
                       : "bg-neutral-50 text-neutral-600 hover:bg-neutral-100 border border-neutral-200"
@@ -621,7 +644,7 @@ export default function AdminModerationPage() {
 
             {/* Table */}
             <div className="bg-white border border-neutral-200 rounded-b-lg shadow-2xs overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="border-b border-neutral-200 bg-neutral-50/50 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                     <th className="py-3 px-4">Short Code / Title</th>
@@ -826,7 +849,7 @@ export default function AdminModerationPage() {
             </div>
 
             <div className="bg-white border border-neutral-200 rounded-b-lg shadow-2xs overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead>
                   <tr className="border-b border-neutral-200 bg-neutral-50/50 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                     <th className="py-3 px-4">User Email</th>
@@ -1070,9 +1093,9 @@ export default function AdminModerationPage() {
 
       {/* Ban Link Modal */}
       {banningUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
                   <Ban className="w-4 h-4" />
@@ -1094,7 +1117,7 @@ export default function AdminModerationPage() {
               </button>
             </div>
 
-            <form onSubmit={handleBanSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleBanSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto">
               {banError && (
                 <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
@@ -1150,9 +1173,9 @@ export default function AdminModerationPage() {
 
       {/* Ban User Modal */}
       {banningUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-2xs">
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95">
-            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-2xs">
+          <div className="bg-white border border-neutral-200 rounded-lg shadow-lg w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600">
                   <ShieldAlert className="w-4 h-4" />
@@ -1174,7 +1197,7 @@ export default function AdminModerationPage() {
               </button>
             </div>
 
-            <form onSubmit={handleUserBanSubmit} className="p-5 space-y-4">
+            <form onSubmit={handleUserBanSubmit} className="p-4 sm:p-5 space-y-4 overflow-y-auto">
               {userBanError && (
                 <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />

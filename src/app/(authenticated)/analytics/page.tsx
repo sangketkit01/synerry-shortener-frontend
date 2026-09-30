@@ -168,34 +168,52 @@ function AnalyticsContent() {
   return (
     <div className="min-h-screen bg-neutral-50/50 flex flex-col">
       {/* Top Header */}
-      <header className="h-14 border-b border-neutral-200 bg-white px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+      <header className="h-14 border-b border-neutral-200 bg-white px-3 sm:px-8 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Back button on LEFT side */}
           <Link
             href={user?.role === "ADMIN" ? "/admin" : "/dashboard"}
-            className="flex items-center justify-center p-1.5 rounded-md border border-neutral-200 hover:border-neutral-300 text-neutral-600 hover:text-neutral-900 bg-white transition-colors cursor-pointer"
+            className="flex items-center justify-center p-1.5 rounded-md border border-neutral-200 hover:border-neutral-300 text-neutral-600 hover:text-neutral-900 bg-white transition-colors cursor-pointer shrink-0"
             title={user?.role === "ADMIN" ? "Back to Admin Portal" : "Back to Dashboard"}
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
 
-          <img
-            src="/synerry-logo.png"
-            alt="Synerry"
-            className="h-7 w-auto object-contain"
-          />
-          <div className="flex items-center gap-1.5">
+          <Link
+            href={user?.role === "ADMIN" ? "/admin" : "/dashboard"}
+            className="flex items-center gap-2 shrink-0"
+          >
+            <img
+              src="/synerry-logo.png"
+              alt="Synerry"
+              className="h-6 sm:h-7 w-auto object-contain"
+            />
+            <span className="font-semibold text-sm text-neutral-900 hover:text-[#E30A27] transition-colors hidden sm:inline">
+              Shortener
+            </span>
+          </Link>
+
+          <nav className="flex items-center gap-1 sm:gap-1.5 text-xs text-neutral-500 overflow-x-auto">
             <span className="text-neutral-300">/</span>
-            <span className="text-xs text-neutral-500 font-medium">Analytics</span>
+            <Link
+              href="/analytics"
+              className={`transition-colors font-medium ${
+                !shortCode
+                  ? "text-neutral-900 font-semibold"
+                  : "text-neutral-500 hover:text-neutral-900"
+              }`}
+            >
+              Analytics
+            </Link>
             {shortCode && (
               <>
                 <span className="text-neutral-300">/</span>
-                <span className="font-mono text-xs font-semibold text-neutral-900">
-                  <span className="text-neutral-400">{domainHost}/s/</span>{shortCode}
+                <span className="font-mono text-xs font-semibold text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded truncate max-w-[120px] sm:max-w-none">
+                  <span className="text-neutral-400 hidden sm:inline">{domainHost}/s/</span>{shortCode}
                 </span>
               </>
             )}
-          </div>
+          </nav>
         </div>
 
         {/* Right side has ONLY action buttons: Refresh and Export CSV */}
@@ -207,13 +225,13 @@ function AnalyticsContent() {
             title="Refresh analytics data"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#E30A27]" : ""}`} />
-            <span>Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
           <button
             onClick={handleExportCsv}
             disabled={!summary || summary.total_clicks === 0}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded shadow-2xs transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded shadow-2xs transition-colors ${
               !summary || summary.total_clicks === 0
                 ? "bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed"
                 : "text-white bg-[#E30A27] hover:bg-[#C80820] cursor-pointer"
@@ -225,7 +243,7 @@ function AnalyticsContent() {
             }
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
         </div>
       </header>
@@ -559,7 +577,7 @@ function AnalyticsContent() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[680px]">
                   <thead>
                     <tr className="border-b border-neutral-200 bg-neutral-50/50 text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                       <th className="py-2.5 px-4">Timestamp (UTC)</th>
