@@ -54,12 +54,6 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemo = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError(null);
-  };
-
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-neutral-50/50">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -145,31 +139,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Fill for Examiners */}
-          <div className="mt-6 pt-5 border-t border-neutral-100">
-            <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider mb-2">
-              Examiner Quick Demo Credentials
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => fillDemo("admin@synerry.com", "Admin@123456")}
-                className="text-left px-2.5 py-1.5 border border-neutral-200 hover:border-neutral-300 rounded text-xs text-neutral-700 bg-neutral-50 hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <div className="font-medium text-neutral-900">Admin Account</div>
-                <div className="text-[11px] text-neutral-500 truncate">admin@synerry.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo("demo@synerry.com", "Demo@123456")}
-                className="text-left px-2.5 py-1.5 border border-neutral-200 hover:border-neutral-300 rounded text-xs text-neutral-700 bg-neutral-50 hover:bg-neutral-100 transition-colors cursor-pointer"
-              >
-                <div className="font-medium text-neutral-900">User Account</div>
-                <div className="text-[11px] text-neutral-500 truncate">demo@synerry.com</div>
-              </button>
-            </div>
-          </div>
 
           <div className="mt-6 text-center text-xs text-neutral-600">
             Don't have an account?{" "}
