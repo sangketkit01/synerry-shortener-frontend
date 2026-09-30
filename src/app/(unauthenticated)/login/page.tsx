@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/providers/auth-provider";
 import { api } from "@/utils/api";
-import { ArrowRight, Lock, Mail, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Lock, Mail, AlertCircle, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,6 +56,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-neutral-50/50">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0 mb-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to home</span>
+        </Link>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-2 mb-2">
