@@ -434,17 +434,16 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-neutral-50/50 flex flex-col">
       {/* Cloudflare-style Clean Header */}
       <header className="h-14 border-b border-neutral-200 bg-white px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded bg-[#E30A27] flex items-center justify-center text-white font-bold text-xs tracking-wider">
-            S
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-sm tracking-tight text-neutral-900">
-              Synerry
-            </span>
-            <span className="text-neutral-300">/</span>
-            <span className="text-xs text-neutral-500 font-medium">Shortener</span>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center">
+            <img
+              src="/synerry-logo.png"
+              alt="Synerry"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
+          <span className="text-neutral-300">/</span>
+          <span className="text-xs text-neutral-500 font-medium">Shortener</span>
         </div>
 
         <div className="flex items-center gap-3">

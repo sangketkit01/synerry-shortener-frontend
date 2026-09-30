@@ -179,13 +179,12 @@ function AnalyticsContent() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
 
-          <div className="w-7 h-7 rounded bg-[#E30A27] flex items-center justify-center text-white font-bold text-xs tracking-wider">
-            S
-          </div>
+          <img
+            src="/synerry-logo.png"
+            alt="Synerry"
+            className="h-7 w-auto object-contain"
+          />
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-sm tracking-tight text-neutral-900">
-              Synerry
-            </span>
             <span className="text-neutral-300">/</span>
             <span className="text-xs text-neutral-500 font-medium">Analytics</span>
             {shortCode && (

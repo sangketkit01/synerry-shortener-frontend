@@ -216,14 +216,16 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top Navbar (Cloudflare Minimalist Style) */}
       <header className="h-14 border-b border-neutral-200 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 bg-white">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#E30A27] flex items-center justify-center text-white font-bold text-xs tracking-wider">
-            S
-          </div>
-          <span className="font-semibold text-sm tracking-tight text-neutral-900">
-            Synerry <span className="font-normal text-neutral-500">Shortener</span>
+        <Link href="/" className="flex items-center gap-2">
+          <img
+            src="/synerry-logo.png"
+            alt="Synerry"
+            className="h-7 w-auto object-contain"
+          />
+          <span className="font-medium text-xs tracking-tight text-neutral-500 border-l border-neutral-300 pl-2">
+            Shortener
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-3">
           {isLoading ? null : user ? (

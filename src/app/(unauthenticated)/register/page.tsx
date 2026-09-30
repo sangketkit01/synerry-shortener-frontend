@@ -80,13 +80,17 @@ export default function RegisterPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Header */}
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-7 h-7 rounded bg-[#E30A27] flex items-center justify-center text-white font-bold text-sm tracking-wider">
-            S
-          </div>
-          <span className="font-semibold text-lg tracking-tight text-neutral-900">
-            Synerry <span className="font-normal text-neutral-500">Shortener</span>
-          </span>
+        <div className="flex items-center justify-center gap-2.5 mb-3">
+          <Link href="/" className="flex items-center gap-2">
+            <img
+              src="/synerry-logo.png"
+              alt="Synerry"
+              className="h-8 w-auto object-contain"
+            />
+            <span className="font-medium text-xs tracking-tight text-neutral-500 border-l border-neutral-300 pl-2">
+              Shortener
+            </span>
+          </Link>
         </div>
         <h2 className="text-center text-xl font-semibold tracking-tight text-neutral-900">
           Create an account

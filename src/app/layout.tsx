@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Synerry URL Shortener & Analytics",
   description: "Enterprise URL Shortening and High-Performance Analytics Platform",
+  icons: {
+    icon: "/synerry-logo.png",
+    shortcut: "/synerry-logo.png",
+    apple: "/synerry-logo.png",
+  },
 };
 
 export default function RootLayout({
