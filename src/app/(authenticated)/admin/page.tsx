@@ -1104,7 +1104,7 @@ export default function AdminModerationPage() {
                   <h3 className="text-sm font-semibold text-neutral-900">
                     Suspend Short Link
                   </h3>
-                  <p className="text-xs text-neutral-500 font-mono">
+                  <p className="text-xs text-neutral-500 font-mono truncate max-w-[280px]" title={`${domainHost}/s/${banningUrl.shortCode}`}>
                     {domainHost}/s/{banningUrl.shortCode}
                   </p>
                 </div>

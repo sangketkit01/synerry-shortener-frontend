@@ -1025,27 +1025,30 @@ export default function DashboardPage() {
                 />
               </div>
 
-              {/* Custom Alias & Expiration Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Custom Alias */}
-                <div>
-                  <label className="block text-xs font-medium text-neutral-700 mb-1">
-                    Custom Slug (Optional)
-                  </label>
-                  <div className="flex items-center">
-                    <span className="px-2 py-2 border border-r-0 border-neutral-200 bg-neutral-50 text-neutral-400 text-xs rounded-l-md font-mono">
-                      {domainHost}/s/
-                    </span>
-                    <input
-                      type="text"
-                      value={newCustomAlias}
-                      onChange={(e) => setNewCustomAlias(e.target.value)}
-                      placeholder="custom-name"
-                      className="w-full px-2 py-2 text-xs border border-neutral-200 rounded-r-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
-                    />
-                  </div>
+              {/* Custom Slug (Optional) - Full Width with resilient domain prefix */}
+              <div>
+                <label className="block text-xs font-medium text-neutral-700 mb-1">
+                  Custom Slug (Optional)
+                </label>
+                <div className="flex items-center rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-neutral-900 focus-within:border-neutral-900 overflow-hidden">
+                  <span
+                    className="shrink-0 px-3 py-2 border-r border-neutral-200 bg-neutral-50 text-neutral-500 text-xs font-mono select-none whitespace-nowrap max-w-[55%] sm:max-w-[320px] truncate"
+                    title={`${domainHost}/s/`}
+                  >
+                    {domainHost}/s/
+                  </span>
+                  <input
+                    type="text"
+                    value={newCustomAlias}
+                    onChange={(e) => setNewCustomAlias(e.target.value)}
+                    placeholder="custom-name"
+                    className="flex-1 min-w-0 px-3 py-2 text-xs bg-transparent focus:outline-none font-mono text-neutral-800 placeholder:text-neutral-400"
+                  />
                 </div>
+              </div>
 
+              {/* Expiration Date & Group / Folder Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Expiration Date */}
                 <div>
                   <label className="block text-xs font-medium text-neutral-700 mb-1">
@@ -1055,28 +1058,28 @@ export default function DashboardPage() {
                     type="datetime-local"
                     value={newExpiresAt}
                     onChange={(e) => setNewExpiresAt(e.target.value)}
-                    className="w-full px-2 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    className="w-full px-2.5 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white"
                   />
                 </div>
-              </div>
 
-              {/* Group / Folder Assignment */}
-              <div>
-                <label className="block text-xs font-medium text-neutral-700 mb-1">
-                  Group / Category (Optional)
-                </label>
-                <select
-                  value={newGroupId}
-                  onChange={(e) => setNewGroupId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white text-neutral-800"
-                >
-                  <option value="">No Group</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
+                {/* Group / Folder Assignment */}
+                <div>
+                  <label className="block text-xs font-medium text-neutral-700 mb-1">
+                    Group / Category (Optional)
+                  </label>
+                  <select
+                    value={newGroupId}
+                    onChange={(e) => setNewGroupId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:ring-1 focus:ring-neutral-900 bg-white text-neutral-800"
+                  >
+                    <option value="">No Group</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* QR Code Colors Customization */}
@@ -1158,7 +1161,7 @@ export default function DashboardPage() {
                 <h3 className="text-sm font-semibold text-neutral-900">
                   QR Code
                 </h3>
-                <p className="text-xs text-neutral-500 font-mono">
+                <p className="text-xs text-neutral-500 font-mono truncate max-w-[240px]" title={`${domainHost}/s/${selectedQrUrl.shortCode}`}>
                   {domainHost}/s/{selectedQrUrl.shortCode}
                 </p>
               </div>
@@ -1224,7 +1227,7 @@ export default function DashboardPage() {
                 <h3 className="text-sm font-semibold text-neutral-900">
                   Edit short link
                 </h3>
-                <p className="text-xs text-neutral-500 font-mono">
+                <p className="text-xs text-neutral-500 font-mono truncate max-w-[340px]" title={`${domainHost}/s/${editingUrl.shortCode}`}>
                   {domainHost}/s/{editingUrl.shortCode}
                 </p>
               </div>

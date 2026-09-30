@@ -325,8 +325,11 @@ export default function HomePage() {
                 <label className="block text-[11px] font-medium text-neutral-600 mb-1">
                   Custom Slug (Optional)
                 </label>
-                <div className="flex items-center">
-                  <span className="px-2.5 py-1.5 border border-r-0 border-neutral-200 bg-neutral-50 text-neutral-400 text-xs rounded-l-md font-mono">
+                <div className="flex items-center rounded-md border border-neutral-200 bg-white focus-within:ring-1 focus-within:ring-neutral-900 focus-within:border-neutral-900 overflow-hidden">
+                  <span
+                    className="shrink-0 px-2.5 py-1.5 border-r border-neutral-200 bg-neutral-50 text-neutral-400 text-xs font-mono select-none whitespace-nowrap max-w-[55%] sm:max-w-[320px] truncate"
+                    title={`${domainHost}/s/`}
+                  >
                     {domainHost}/s/
                   </span>
                   <input
@@ -334,7 +337,7 @@ export default function HomePage() {
                     value={customAlias}
                     onChange={(e) => setCustomAlias(e.target.value)}
                     placeholder="my-custom-name"
-                    className="w-full px-2.5 py-1.5 text-xs border border-neutral-200 rounded-r-md focus:outline-none focus:ring-1 focus:ring-neutral-900 font-mono"
+                    className="flex-1 min-w-0 px-2.5 py-1.5 text-xs bg-transparent focus:outline-none font-mono text-neutral-800 placeholder:text-neutral-400"
                   />
                 </div>
               </div>

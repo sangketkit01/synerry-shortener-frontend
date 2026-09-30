@@ -121,10 +121,19 @@ function AnalyticsContent() {
     fetchData();
   }, [fetchData]);
 
-  // Handle manual refresh
-  const handleRefresh = () => {
+  // Handle manual refresh & trigger Data Pipeline sync
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    fetchData();
+    try {
+      // 1. Run Data Pipeline (ETL) to process pending raw clicks into Data Warehouse
+      await api.post("/api/analytics/pipeline/trigger").catch((err) => {
+        console.warn("Pipeline trigger notice:", err);
+      });
+      // 2. Fetch fresh metrics from Star Schema
+      await fetchData();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Export CSV with Authorization
@@ -222,10 +231,10 @@ function AnalyticsContent() {
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 rounded bg-white transition-colors cursor-pointer"
-            title="Refresh analytics data"
+            title="Sync Data Pipeline & Refresh Metrics"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#E30A27]" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{isRefreshing ? "Syncing..." : "Refresh"}</span>
           </button>
 
           <button
